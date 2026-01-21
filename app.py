@@ -45,7 +45,7 @@ FULL_DATA = [
     }
 ]
 
-# --- 2. CONFIGURACIÓN Y ESTILOS ---
+# --- 2. CONFIGURACIÓN Y ESTILOS. ---
 st.set_page_config(page_title="Microtest Simulator", page_icon="🎓", layout="centered")
 
 # --- 2. CONFIGURACIÓN Y ESTILOS ---
