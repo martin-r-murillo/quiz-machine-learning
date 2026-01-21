@@ -45,60 +45,6 @@ FULL_DATA = [
     }
 ]
 
-# --- 2. CONFIGURACIÓN Y ESTILOS ---
-st.set_page_config(page_title="Microtest Simulator", page_icon="🎓", layout="centered")
-
-# CSS: Forzar tema claro globalmente
-st.markdown("""
-    <style>
-    /* REDEFINICIÓN DE VARIABLES GLOBALES (El truco maestro) */
-    /* Esto obliga a Streamlit a usar texto oscuro en todas partes */
-    :root {
-        --primary-color: #ff4b4b;
-        --background-color: #f5f7f9;
-        --secondary-background-color: #ffffff;
-        --text-color: #000000;
-        --font: "sans-serif";
-    }
-    
-    /* Fondo general */
-    .stApp {
-        background-color: #f5f7f9;
-        color: #000000 !important; /* Fuerza bruta para texto */
-    }
-    
-    /* Tarjeta de Pregunta */
-    .question-card {
-        background-color: white;
-        padding: 2rem;
-        border-radius: 15px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        margin-bottom: 2rem;
-    }
-    
-    /* Asegurar que todas las etiquetas (labels) de radio/checkbox sean negras */
-    div[data-testid="stMarkdownContainer"] p {
-        color: #000000 !important;
-    }
-    
-    /* Botones (Mantener texto blanco) */
-    div.stButton > button {
-        color: white !important;
-        background-color: #ff4b4b;
-        border: none;
-    }
-    
-    /* Ajustes para el modo oscuro del navegador */
-    @media (prefers-color-scheme: dark) {
-        .stApp {
-            background-color: #f5f7f9;
-        }
-        p, h1, h2, h3, label, span, div {
-            color: #000000 !important;
-        }
-    }
-    </style>
-""", unsafe_allow_html=True)
 
 # --- 3. GESTIÓN DEL ESTADO (SESSION STATE) ---
 if 'current_test_id' not in st.session_state:
