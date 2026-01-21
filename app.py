@@ -48,15 +48,18 @@ FULL_DATA = [
 # --- 2. CONFIGURACIÓN Y ESTILOS ---
 st.set_page_config(page_title="Microtest Simulator", page_icon="🎓", layout="centered")
 
-# CSS REFORZADO: Forzamos colores oscuros en TODOS los elementos de texto
+# --- 2. CONFIGURACIÓN Y ESTILOS ---
+st.set_page_config(page_title="Microtest Simulator", page_icon="🎓", layout="centered")
+
+# CSS FINAL: Corrección específica para textos de opciones
 st.markdown("""
     <style>
-    /* 1. Fondo general de la App */
+    /* 1. Fondo general claro */
     .stApp {
         background-color: #f5f7f9;
     }
     
-    /* 2. Contenedor de la Pregunta (Tarjeta Blanca) */
+    /* 2. Tarjeta blanca para la pregunta */
     .question-card {
         background-color: white;
         padding: 2rem;
@@ -65,36 +68,30 @@ st.markdown("""
         margin-bottom: 2rem;
     }
 
-    /* 3. FORZADO DE COLOR DE TEXTO GLOBAL */
-    /* Esto afecta a títulos, párrafos, y etiquetas de opciones */
-    h1, h2, h3, h4, h5, h6, p, div, label, span {
+    /* 3. FUERZA BRUTA: Todo el texto a negro casi puro */
+    h1, h2, h3, h4, h5, h6, p, label, span, div {
         color: #1f1f1f !important;
     }
     
-    /* 4. Excepciones: Botones y Alertas (para que se sigan viendo bien) */
-    div.stButton > button {
-        color: white !important; /* Texto del botón blanco */
-        background-color: #ff4b4b; /* Color rojo Streamlit por defecto */
-        width: 100%;
-        border-radius: 10px;
-        height: 3em;
-        font-weight: bold;
-        border: none;
-    }
-    div.stButton > button:hover {
-        background-color: #ff2b2b;
-        color: white !important;
+    /* 4. CORRECCIÓN ESPECÍFICA PARA OPCIONES (Radio y Checkbox) */
+    /* Esto arregla el texto invisible al lado de los botones */
+    div[data-testid="stMarkdownContainer"] p {
+        color: #1f1f1f !important;
     }
     
-    /* Barras de alerta (Success/Error/Info) - Dejamos que Streamlit las maneje o forzamos negro */
-    div[data-baseweb="notification"] p {
-        color: inherit !important; /* Respetar color de la alerta */
+    /* 5. Excepción: Botones (Mantener texto blanco) */
+    div.stButton > button {
+        color: white !important;
+        background-color: #ff4b4b;
+        border: none;
     }
-
+    div.stButton > button p {
+        color: white !important; /* Forzar texto blanco dentro del botón */
+    }
+    
+    /* 6. Barra de estado */
     .status-bar {
-        font-size: 0.9rem;
         color: #666 !important;
-        margin-bottom: 0.5rem;
     }
     </style>
 """, unsafe_allow_html=True)
