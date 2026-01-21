@@ -1,6 +1,6 @@
 import streamlit as st
+import random
 import time
-import random # <--- ¡IMPORTANTE! Asegúrate de añadir esto arriba del todo
 
 # --- 1. DATOS (Base de datos de preguntas) ---
 # He incluido una muestra representativa. Para el examen completo, 
