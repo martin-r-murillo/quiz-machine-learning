@@ -1,5 +1,6 @@
 import streamlit as st
 import time
+import random # <--- ¡IMPORTANTE! Asegúrate de añadir esto arriba del todo
 
 # --- 1. DATOS (Base de datos de preguntas) ---
 # He incluido una muestra representativa. Para el examen completo, 
@@ -416,6 +417,269 @@ FULL_DATA = [
     }
 ]
 
+if "theme" not in st.session_state:
+    st.session_state.theme = "light"
+
+# CSS para forzar estilos limpios
+st.markdown("""
+    <style>
+    :root {
+        --primary-color: #ff4b4b;
+        --background-color: #f5f7f9;
+        --secondary-background-color: #ffffff;
+        --text-color: #000000;
+        --font: "sans-serif";
+    }
+    .stApp {
+        background-color: #f5f7f9;
+        color: #000000 !important;
+    }
+    .question-card {
+        background-color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    div[data-testid="stMarkdownContainer"] p {
+        color: #000000 !important;
+        font-size: 1.1rem;
+    }
+    h1, h2, h3, h4, p, span, div, label {
+        color: #000000 !important;
+    }
+    div.stButton > button {
+        color: white !important;
+        background-color: #ff4b4b;
+        border: none;
+        font-weight: bold;
+        transition: all 0.3s;
+    }
+    div.stButton > button:hover {
+        background-color: #ff2b2b;
+        transform: scale(1.02);
+    }
+    .status-bar {
+        color: #666 !important;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# --- 3. GESTIÓN DEL ESTADO (SESSION STATE) ---
+# Inicializamos variables si no existen
+default_values = {
+    'q_index': 0,
+    'score': 0,
+    'quiz_finished': False,
+    'last_answer_correct': None,
+    'show_explanation': False,
+    'active_questions_list': [],     # Aquí guardaremos la lista de preguntas activas (sea 3 o 100)
+    'current_mode_id': None          # Para detectar cambios de microtest/examen
+}
+
+for key, val in default_values.items():
+    if key not in st.session_state:
+        st.session_state[key] = val
+
+# --- 4. FUNCIONES DE LÓGICA ---
+
+def iniciar_quiz(lista_preguntas, mode_id):
+    """Reinicia el quiz con una nueva lista de preguntas"""
+    st.session_state.active_questions_list = lista_preguntas
+    st.session_state.current_mode_id = mode_id
+    st.session_state.q_index = 0
+    st.session_state.score = 0
+    st.session_state.quiz_finished = False
+    st.session_state.show_explanation = False
+    st.session_state.last_answer_correct = None
+
+def submit_answer(user_selection, correct_answers, q_type):
+    # Corrección estricta
+    is_correct = False
+    if q_type == "single":
+        if user_selection == correct_answers[0]:
+            is_correct = True
+    else: # Multi
+        # El usuario debe marcar TODAS las correctas y NINGUNA incorrecta
+        if set(user_selection) == set(correct_answers):
+            is_correct = True
+    
+    if is_correct:
+        st.session_state.score += 1
+        st.session_state.last_answer_correct = True
+    else:
+        st.session_state.last_answer_correct = False
+    
+    st.session_state.show_explanation = True
+
+def next_question():
+    total = len(st.session_state.active_questions_list)
+    if st.session_state.q_index < total - 1:
+        st.session_state.q_index += 1
+        st.session_state.show_explanation = False
+        st.session_state.last_answer_correct = None
+    else:
+        st.session_state.quiz_finished = True
+
+# --- 5. INTERFAZ: BARRA LATERAL ---
+with st.sidebar:
+    st.title("🧠 Configuración")
+    
+    # SELECTOR DE MODO
+    modo = st.radio("Modo de Estudio:", ["🎯 Práctica por Temas", "🔥 Examen General"], index=0)
+    
+    preguntas_a_cargar = []
+    identificador_nuevo = None
+    
+    if modo == "🎯 Práctica por Temas":
+        # Lógica original: Elegir Tema -> Elegir Microtest
+        temas = [t["tema"] for t in FULL_DATA]
+        tema_sel = st.selectbox("Elige un Módulo:", temas)
+        
+        datos_tema = next(item for item in FULL_DATA if item["tema"] == tema_sel)
+        tests_ids = [t["id"] for t in datos_tema["tests"]]
+        test_sel = st.radio("Elige Microtest:", tests_ids)
+        
+        # Recuperamos las preguntas de ese test específico
+        datos_test = next(t for t in datos_tema["tests"] if t["id"] == test_sel)
+        preguntas_a_cargar = datos_test["questions"]
+        identificador_nuevo = test_sel # Usamos el nombre del microtest como ID
+        
+        st.info(f"Microtest de {len(preguntas_a_cargar)} preguntas.")
+
+    else: # MODO EXAMEN GENERAL
+        st.warning("⚠️ El examen general incluye TODAS las preguntas mezcladas.")
+        
+        # Aplanar la lista: sacar todas las preguntas de todos los temas
+        todas_las_preguntas = []
+        for tema in FULL_DATA:
+            for test in tema["tests"]:
+                todas_las_preguntas.extend(test["questions"])
+        
+        identificador_nuevo = "EXAMEN_GENERAL"
+        
+        # Solo barajamos si estamos iniciando (para no barajar en cada clic)
+        if st.session_state.current_mode_id != identificador_nuevo:
+             random.shuffle(todas_las_preguntas)
+        
+        preguntas_a_cargar = todas_las_preguntas
+        st.write(f"Total de preguntas: **{len(preguntas_a_cargar)}**")
+
+    # DETECCIÓN DE CAMBIO DE MODO
+    # Si el usuario cambió de selección en el menú, reiniciamos el quiz automáticamente
+    if st.session_state.current_mode_id != identificador_nuevo:
+        iniciar_quiz(preguntas_a_cargar, identificador_nuevo)
+        st.rerun()
+
+    st.divider()
+    st.metric("Puntuación Actual", f"{st.session_state.score}")
+    
+    if st.button("🔄 Reiniciar desde cero"):
+        # Forzamos recarga con el mismo ID pero barajando de nuevo si es examen
+        if modo == "🔥 Examen General":
+             random.shuffle(preguntas_a_cargar)
+        iniciar_quiz(preguntas_a_cargar, identificador_nuevo)
+        st.rerun()
+
+# --- 6. ÁREA PRINCIPAL (QUIZ) ---
+
+# Verificamos que haya preguntas cargadas
+if not st.session_state.active_questions_list:
+    st.error("No se han cargado preguntas. Selecciona un módulo.")
+    st.stop()
+
+# Pantalla de Resultados
+if st.session_state.quiz_finished:
+    st.balloons()
+    st.markdown("<div class='question-card'>", unsafe_allow_html=True)
+    st.title("🏁 Resultado Final")
+    
+    total_q = len(st.session_state.active_questions_list)
+    nota = (st.session_state.score / total_q) * 10
+    
+    col1, col2, col3 = st.columns([1,2,1])
+    with col2:
+        st.metric("Nota Final (Base 10)", f"{nota:.2f} / 10")
+        st.write(f"Acertaste **{st.session_state.score}** de **{total_q}** preguntas.")
+        
+        if nota >= 9:
+            st.success("¡Excelente! Dominio total.")
+        elif nota >= 6:
+            st.warning("Aprobado, pero hay margen de mejora.")
+        else:
+            st.error("Necesitas repasar más.")
+            
+    if st.button("Intentar de nuevo", key="btn_final_retry"):
+        if modo == "🔥 Examen General":
+             # En examen general, "Intentar de nuevo" debería re-barajar
+             lista_nueva = st.session_state.active_questions_list.copy()
+             random.shuffle(lista_nueva)
+             iniciar_quiz(lista_nueva, identificador_nuevo)
+        else:
+             iniciar_quiz(st.session_state.active_questions_list, identificador_nuevo)
+        st.rerun()
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# Pantalla de Pregunta Activa
+else:
+    idx = st.session_state.q_index
+    q_actual = st.session_state.active_questions_list[idx]
+    total_q = len(st.session_state.active_questions_list)
+    
+    # Barra de Progreso
+    progreso = (idx + 1) / total_q
+    st.progress(progreso)
+    st.markdown(f"<div class='status-bar'>Pregunta {idx + 1} de {total_q}</div>", unsafe_allow_html=True)
+
+    # Tarjeta de Pregunta
+    st.markdown(f"""
+    <div class='question-card'>
+        <h3>{q_actual['q']}</h3>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Lógica de respuesta
+    if not st.session_state.show_explanation:
+        with st.form(key=f"form_q_{idx}"): # Key única por índice para limpiar selección al avanzar
+            
+            user_response = None
+            
+            if q_actual["type"] == "single":
+                user_response = st.radio("Elige una opción:", q_actual["options"], index=None)
+            else:
+                st.write("**Selección Múltiple** (Marca todas las correctas):")
+                # Checkboxes manuales
+                user_response = []
+                for opt in q_actual["options"]:
+                    if st.checkbox(opt):
+                        user_response.append(opt)
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            submit = st.form_submit_button("Comprobar ➔")
+            
+            if submit:
+                if not user_response:
+                    st.warning("Debes seleccionar una respuesta.")
+                else:
+                    submit_answer(user_response, q_actual["answer"], q_actual["type"])
+                    st.rerun()
+
+    else:
+        # Mostrar Feedback
+        if st.session_state.last_answer_correct:
+            st.success("✅ ¡Correcto!")
+        else:
+            st.error("❌ Incorrecto")
+            st.write(f"**Solución correcta:** {', '.join(q_actual['answer'])}")
+        
+        st.info(f"📖 **Explicación:** {q_actual['explanation']}")
+        
+        if st.button("Siguiente ➔", key=f"next_btn_{idx}"):
+            next_question()
+            st.rerun()
+            
 # --- 3. GESTIÓN DEL ESTADO (SESSION STATE) ---
 if 'current_test_id' not in st.session_state:
     st.session_state.current_test_id = None
