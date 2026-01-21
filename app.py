@@ -48,41 +48,53 @@ FULL_DATA = [
 # --- 2. CONFIGURACIÓN Y ESTILOS ---
 st.set_page_config(page_title="Microtest Simulator", page_icon="🎓", layout="centered")
 
-# CSS Personalizado corregido para Modo Oscuro
+# CSS REFORZADO: Forzamos colores oscuros en TODOS los elementos de texto
 st.markdown("""
     <style>
-    /* Forzar fondo claro en la app para evitar contrastes raros */
+    /* 1. Fondo general de la App */
     .stApp {
         background-color: #f5f7f9;
     }
-    div.stButton > button {
-        width: 100%;
-        border-radius: 10px;
-        height: 3em;
-        font-weight: bold;
-    }
+    
+    /* 2. Contenedor de la Pregunta (Tarjeta Blanca) */
     .question-card {
         background-color: white;
         padding: 2rem;
         border-radius: 15px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         margin-bottom: 2rem;
-        /* ESTAS LINEAS SON LA CORRECCIÓN: */
-        color: #1f1f1f; 
     }
-    /* Forzamos el color del texto del título de la pregunta específicamente */
-    .question-card h3 {
+
+    /* 3. FORZADO DE COLOR DE TEXTO GLOBAL */
+    /* Esto afecta a títulos, párrafos, y etiquetas de opciones */
+    h1, h2, h3, h4, h5, h6, p, div, label, span {
         color: #1f1f1f !important;
-        margin: 0;
     }
+    
+    /* 4. Excepciones: Botones y Alertas (para que se sigan viendo bien) */
+    div.stButton > button {
+        color: white !important; /* Texto del botón blanco */
+        background-color: #ff4b4b; /* Color rojo Streamlit por defecto */
+        width: 100%;
+        border-radius: 10px;
+        height: 3em;
+        font-weight: bold;
+        border: none;
+    }
+    div.stButton > button:hover {
+        background-color: #ff2b2b;
+        color: white !important;
+    }
+    
+    /* Barras de alerta (Success/Error/Info) - Dejamos que Streamlit las maneje o forzamos negro */
+    div[data-baseweb="notification"] p {
+        color: inherit !important; /* Respetar color de la alerta */
+    }
+
     .status-bar {
         font-size: 0.9rem;
-        color: #666;
+        color: #666 !important;
         margin-bottom: 0.5rem;
-    }
-    /* Ajuste para que los textos de ayuda (radio buttons) se lean bien si el tema es oscuro */
-    p, label {
-        font-size: 1.1rem;
     }
     </style>
 """, unsafe_allow_html=True)
