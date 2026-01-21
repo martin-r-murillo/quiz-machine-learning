@@ -48,9 +48,10 @@ FULL_DATA = [
 # --- 2. CONFIGURACIÓN Y ESTILOS ---
 st.set_page_config(page_title="Microtest Simulator", page_icon="🎓", layout="centered")
 
-# CSS Personalizado para parecerse a una App nativa
+# CSS Personalizado corregido para Modo Oscuro
 st.markdown("""
     <style>
+    /* Forzar fondo claro en la app para evitar contrastes raros */
     .stApp {
         background-color: #f5f7f9;
     }
@@ -66,11 +67,22 @@ st.markdown("""
         border-radius: 15px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         margin-bottom: 2rem;
+        /* ESTAS LINEAS SON LA CORRECCIÓN: */
+        color: #1f1f1f; 
+    }
+    /* Forzamos el color del texto del título de la pregunta específicamente */
+    .question-card h3 {
+        color: #1f1f1f !important;
+        margin: 0;
     }
     .status-bar {
         font-size: 0.9rem;
         color: #666;
         margin-bottom: 0.5rem;
+    }
+    /* Ajuste para que los textos de ayuda (radio buttons) se lean bien si el tema es oscuro */
+    p, label {
+        font-size: 1.1rem;
     }
     </style>
 """, unsafe_allow_html=True)
