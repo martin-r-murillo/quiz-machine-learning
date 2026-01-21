@@ -45,21 +45,29 @@ FULL_DATA = [
     }
 ]
 
-# --- 2. CONFIGURACIÓN Y ESTILOS. ---
-st.set_page_config(page_title="Microtest Simulator", page_icon="🎓", layout="centered")
-
 # --- 2. CONFIGURACIÓN Y ESTILOS ---
 st.set_page_config(page_title="Microtest Simulator", page_icon="🎓", layout="centered")
 
-# CSS FINAL: Corrección específica para textos de opciones
+# CSS: Forzar tema claro globalmente
 st.markdown("""
     <style>
-    /* 1. Fondo general claro */
-    .stApp {
-        background-color: #f5f7f9;
+    /* REDEFINICIÓN DE VARIABLES GLOBALES (El truco maestro) */
+    /* Esto obliga a Streamlit a usar texto oscuro en todas partes */
+    :root {
+        --primary-color: #ff4b4b;
+        --background-color: #f5f7f9;
+        --secondary-background-color: #ffffff;
+        --text-color: #000000;
+        --font: "sans-serif";
     }
     
-    /* 2. Tarjeta blanca para la pregunta */
+    /* Fondo general */
+    .stApp {
+        background-color: #f5f7f9;
+        color: #000000 !important; /* Fuerza bruta para texto */
+    }
+    
+    /* Tarjeta de Pregunta */
     .question-card {
         background-color: white;
         padding: 2rem;
@@ -67,31 +75,27 @@ st.markdown("""
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         margin-bottom: 2rem;
     }
-
-    /* 3. FUERZA BRUTA: Todo el texto a negro casi puro */
-    h1, h2, h3, h4, h5, h6, p, label, span, div {
-        color: #1f1f1f !important;
-    }
     
-    /* 4. CORRECCIÓN ESPECÍFICA PARA OPCIONES (Radio y Checkbox) */
-    /* Esto arregla el texto invisible al lado de los botones */
+    /* Asegurar que todas las etiquetas (labels) de radio/checkbox sean negras */
     div[data-testid="stMarkdownContainer"] p {
-        color: #1f1f1f !important;
+        color: #000000 !important;
     }
     
-    /* 5. Excepción: Botones (Mantener texto blanco) */
+    /* Botones (Mantener texto blanco) */
     div.stButton > button {
         color: white !important;
         background-color: #ff4b4b;
         border: none;
     }
-    div.stButton > button p {
-        color: white !important; /* Forzar texto blanco dentro del botón */
-    }
     
-    /* 6. Barra de estado */
-    .status-bar {
-        color: #666 !important;
+    /* Ajustes para el modo oscuro del navegador */
+    @media (prefers-color-scheme: dark) {
+        .stApp {
+            background-color: #f5f7f9;
+        }
+        p, h1, h2, h3, label, span, div {
+            color: #000000 !important;
+        }
     }
     </style>
 """, unsafe_allow_html=True)
