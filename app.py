@@ -537,7 +537,7 @@ with st.sidebar:
     st.title("🧠 Configuración")
     
     # SELECTOR DE MODO
-    modo = st.radio("Modo de Estudio:", ["🎯 Práctica por Temas", "🔥 Examen General"], index=0)
+    modo = st.radio("Modo de Estudio:", ["🎯 Práctica por Temas", "⚡ Examen General (Rápido)"], index=0)
     
     preguntas_a_cargar = []
     identificador_nuevo = None
@@ -558,23 +558,25 @@ with st.sidebar:
         
         st.info(f"Microtest de {len(preguntas_a_cargar)} preguntas.")
 
-    else: # MODO EXAMEN GENERAL
-        st.warning("⚠️ El examen general incluye TODAS las preguntas mezcladas.")
+    else: # MODO EXAMEN GENERAL (RÁPIDO)
+        st.info("⚡ **Modo Sprint:** Se seleccionará aleatoriamente **1 pregunta de cada Microtest** para crear un examen único y variado.")
         
-        # Aplanar la lista: sacar todas las preguntas de todos los temas
-        todas_las_preguntas = []
+        # Lógica nueva: Recorrer todos los tests y sacar 1 pregunta al azar de cada uno
+        preguntas_mix = []
         for tema in FULL_DATA:
             for test in tema["tests"]:
-                todas_las_preguntas.extend(test["questions"])
+                if test["questions"]: # Si el test tiene preguntas
+                    # random.choice elige una al azar de la lista
+                    pregunta_random = random.choice(test["questions"])
+                    preguntas_mix.append(pregunta_random)
         
         identificador_nuevo = "EXAMEN_GENERAL"
         
-        # Solo barajamos si estamos iniciando (para no barajar en cada clic)
-        if st.session_state.current_mode_id != identificador_nuevo:
-             random.shuffle(todas_las_preguntas)
+        # Barajamos el orden para que no salgan en orden de temas (1, 2, 3...)
+        random.shuffle(preguntas_mix)
         
-        preguntas_a_cargar = todas_las_preguntas
-        st.write(f"Total de preguntas: **{len(preguntas_a_cargar)}**")
+        preguntas_a_cargar = preguntas_mix
+        st.write(f"Total de preguntas en este examen: **{len(preguntas_a_cargar)}**")
 
     # DETECCIÓN DE CAMBIO DE MODO
     # Si el usuario cambió de selección en el menú, reiniciamos el quiz automáticamente
@@ -585,13 +587,13 @@ with st.sidebar:
     st.divider()
     st.metric("Puntuación Actual", f"{st.session_state.score}")
     
-    if st.button("🔄 Reiniciar desde cero"):
-        # Forzamos recarga con el mismo ID pero barajando de nuevo si es examen
-        if modo == "🔥 Examen General":
-             random.shuffle(preguntas_a_cargar)
+    # Botón de reinicio
+    if st.button("🔄 Generar Nuevo Examen / Reiniciar"):
+        # Al hacer clic, 'preguntas_a_cargar' se vuelve a calcular (nueva selección aleatoria)
+        # por lo que obtendrás un examen diferente cada vez.
         iniciar_quiz(preguntas_a_cargar, identificador_nuevo)
         st.rerun()
-
+        
 # --- 6. ÁREA PRINCIPAL (QUIZ) ---
 
 # Verificamos que haya preguntas cargadas
